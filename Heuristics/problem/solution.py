@@ -1,152 +1,118 @@
-"""
-AMMM Lab Heuristics
-Representation of a solution instance
-Copyright 2020 Luis Velasco.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
 import copy
 from Heuristics.solution import _Solution
+from Heuristics.problem.utils import computeScheduleCombinations, computeCrossingDayPairs, computeSchedulesPerAutonomy
 
-
-# This class stores the load of the highest loaded CPU
-# when a task is assigned to a CPU.
 class Assignment(object):
-    def __init__(self, taskId, cpuId, highestLoad):
-        self.taskId = taskId
-        self.cpuId = cpuId
-        self.highestLoad = highestLoad
+    def __init__(self, camera, crossing, schedule, totalCost, coveredPairs):
+        self.camera = camera
+        self.crossing = crossing
+        self.schedule = schedule
+        self.totalCost = totalCost
+        self.coveredPairs = coveredPairs
+
+    def cost(self):
+        return self.camera.getPrice() + sum(self.schedule) * self.camera.getPowerConsumption()
 
     def __str__(self):
-        return "<t_%d, c_%d>: highestLoad: %.2f%%" % (self.taskId, self.cpuId, self.highestLoad*100)
-
+        return "(camera {}, crossing {}, schedule {}) =  {} pairs, {} cost".format(self.camera.getModel(), self.crossing.getCrossingId(), self.schedule, self.coveredPairs, self.totalCost)
 
 # Solution includes functions to manage the solution, to perform feasibility
 # checks and to dump the solution into a string or file.
 class Solution(_Solution):
-    def __init__(self, tasks, cpus, capacityPerCPUId):
-        self.tasks = tasks
-        self.cpus = cpus
-        self.taskIdToCPUId = {}  # hash table: task Id => CPU Id
-        self.cpuIdToListTaskId = {}  # hash table: CPU Id => list<task Id>
-        # vector of available capacities per CPU initialized as a copy of maxCapacityPerCPUId vector.
-        self.availCapacityPerCPUId = copy.deepcopy(capacityPerCPUId)
-        # vector of loads per CPU (nCPUs entries initialized to 0.0) 
-        self.loadPerCPUId = [0.0] * len(cpus)
+    def __init__(self, cameraModels, crossings):
+        DAYS = 7
+        MIN_AUTONOMY = 2
+        MAX_AUTONOMY = 6
+        ALL_SCHEDULES = computeScheduleCombinations(DAYS)
+
+        self._assignments = [] # array of tuples (camera, crossing, schedule) that are covered
+        self._coveredPairs = set()
+        self._totalCost = 0
+        self._pairs = computeCrossingDayPairs(len(crossings), DAYS)
+        self._schedulesPerAutonomy = computeSchedulesPerAutonomy(ALL_SCHEDULES, DAYS, MIN_AUTONOMY, MAX_AUTONOMY)
+        self._cameraModels = cameraModels
+        self._crossings = crossings
+        self._crossingToModel = {}
         super().__init__()
 
-    def updateHighestLoad(self):
-        self.fitness = 0.0
-        for cpu in self.cpus:
-            cpuId = cpu.getId()
-            totalCapacity = cpu.getTotalCapacity()
-            usedCapacity = totalCapacity - self.availCapacityPerCPUId[cpuId]
-            load = usedCapacity / totalCapacity
-            self.loadPerCPUId[cpuId] = load
-            self.fitness = max(self.fitness, load)
+    def getUncoveredPairs(self):
+        return len(self._pairs) - len(self._coveredPairs)
 
-    def isFeasibleToAssignTaskToCPU(self, taskId, cpuId):
-        if taskId in self.taskIdToCPUId:
-            return False
+    def getUncoveredPairsSet(self):
+        return self._pairs.difference(self._coveredPairs)
 
-        if self.availCapacityPerCPUId[cpuId] < self.tasks[taskId].getTotalResources():
-            return False
+    def updateTotalCost(self):
+        assignments = self._assignments
+        self._totalCost = 0
+        for assignment in assignments:
+            camera = assignment[0]
+            totalDays = sum(assignment[2])
+            cost = camera.getPrice() + totalDays * camera.getPowerConsumption()
+            self._totalCost += cost
 
+    def updateCoveredPairs(self):
+        assignments = self._assignments
+        self._coveredPairs = set()
+        for assignment in assignments:
+            pairs = set()
+            cameraRange = assignment[0].getRange()
+            ranges = assignment[1].getRequiredRanges()
+            daysOn = [i + 1 for i, value in enumerate(assignment[2]) if value == 1]
+
+            visibleCrossings = [
+                index + 1 for index, value in enumerate(ranges) if value <= cameraRange
+            ]
+
+            for d in daysOn:
+                for c in visibleCrossings:
+                    pairs.add((c, d))
+            self._coveredPairs.update(pairs)
+
+    def assign(self, camera, crossing, schedule):
+        if not self.isFeasibleToAssignCameraToCrossing(crossing): return False
+        self._assignments.append((camera, crossing, schedule))
+        self._crossingToModel[crossing.getCrossingId()] = camera.getModel()
+        self.updateTotalCost()
+        self.updateCoveredPairs()
         return True
 
-    def isFeasibleToUnassignTaskFromCPU(self, taskId, cpuId):
-        if taskId not in self.taskIdToCPUId: return False
-        if cpuId not in self.cpuIdToListTaskId: return False
-        if taskId not in self.cpuIdToListTaskId[cpuId]: return False
+    def unassign(self, camera, crossing, schedule):
+        if not self.isFeasibleToUnassignCameraToCrossing(crossing): return False
+        self._assignments = [a for a in self._assignments if not(a[0].getModel() == camera.getModel() and a[1].getCrossingId() == crossing.getCrossingId() and a[2] == schedule)]
+        del self._crossingToModel[crossing.getCrossingId()]
+        self.updateTotalCost()
+        self.updateCoveredPairs()
         return True
 
-    def getCPUIdAssignedToTaskId(self, taskId):
-        if taskId not in self.taskIdToCPUId: return None
-        return self.taskIdToCPUId[taskId]
-
-    def assign(self, taskId, cpuId):
-        if not self.isFeasibleToAssignTaskToCPU(taskId, cpuId):return False
-
-        self.taskIdToCPUId[taskId] = cpuId
-        if cpuId not in self.cpuIdToListTaskId: self.cpuIdToListTaskId[cpuId] = []
-        self.cpuIdToListTaskId[cpuId].append(taskId)
-        self.availCapacityPerCPUId[cpuId] -= self.tasks[taskId].getTotalResources()
-
-        self.updateHighestLoad()
-        return True
-
-    def unassign(self, taskId, cpuId):
-        if not self.isFeasibleToUnassignTaskFromCPU(taskId, cpuId): return False
-
-        del self.taskIdToCPUId[taskId]
-        self.cpuIdToListTaskId[cpuId].remove(taskId)
-        self.availCapacityPerCPUId[cpuId] += self.tasks[taskId].getTotalResources()
-
-        self.updateHighestLoad()
-        return True
-
-    def findFeasibleAssignments(self, taskId):
+    def findFeasibleAssignments(self, camera, crossing):
         feasibleAssignments = []
-        for cpu in self.cpus:
-            cpuId = cpu.getId()
-            feasible = self.assign(taskId, cpuId)
+        schedules = self._schedulesPerAutonomy[camera.getAutonomy()]
+        for schedule in schedules:
+            feasible = self.assign(camera, crossing, schedule)
             if not feasible: continue
-            assignment = Assignment(taskId, cpuId, self.fitness)
+            assignment = Assignment(camera, crossing, schedule, self._totalCost, self._coveredPairs)
             feasibleAssignments.append(assignment)
 
-            self.unassign(taskId, cpuId)
+            self.unassign(camera, crossing, schedule)
 
         return feasibleAssignments
 
-    def findBestFeasibleAssignment(self, taskId):
-        bestAssignment = Assignment(taskId, None, float('infinity'))
-        for cpu in self.cpus:
-            cpuId = cpu.getId()
-            feasible = self.assign(taskId, cpuId)
-            if not feasible: continue
+    def isFeasibleToAssignCameraToCrossing(self, crossing):
+        if crossing.getCrossingId() in self._crossingToModel: return False
+        return True
 
-            curHighestLoad = self.fitness
-            if bestAssignment.highestLoad > curHighestLoad:
-                bestAssignment.cpuId = cpuId
-                bestAssignment.highestLoad = curHighestLoad
-
-            self.unassign(taskId, cpuId)
-
-        return bestAssignment
+    def isFeasibleToUnassignCameraToCrossing(self, crossing):
+        if crossing.getCrossingId() not in self._crossingToModel: return False
+        return True
 
     def __str__(self):
-        strSolution = 'z = %10.8f;\n' % self.fitness
-        if self.fitness == float('inf'): return strSolution
+        strSolution = 'cost = %d;\n' % self._totalCost
+        if self._totalCost == float('inf'): return strSolution
 
-        # Xtc: decision variable containing the assignment of tasks to CPUs
-        # pre-fill with no assignments (all-zeros)
-        xtc = []
-        for t in range(0, len(self.tasks)):  # t = 0..(nTasks-1)
-            xtcEntry = [0] * len(self.cpus)  # results in a vector of 0's with nCPUs elements
-            xtc.append(xtcEntry)
-
-        # iterate over hash table taskIdToCPUId and fill in xtc
-        for taskId, cpuId in self.taskIdToCPUId.items():
-            xtc[taskId][cpuId] = 1
-
-        strSolution += 'xtc = [\n'
-        for xtcEntry in xtc:
-            strSolution += '\t[ '
-            for xtcValue in xtcEntry:
-                strSolution += str(xtcValue) + ' '
-            strSolution += ']\n'
+        # assignments: [(camera, crossing, schedule)]
+        strSolution += 'assignments = [\n'
+        for a in self._assignments:
+            strSolution += '\t('+ str(a[0].getModel()) + ', ' + str(a[1].getCrossingId()) + ', ' + str(a[2]) + '),\n'
         strSolution += '];\n'
 
         return strSolution

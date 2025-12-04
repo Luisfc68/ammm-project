@@ -25,7 +25,7 @@ import sys
 from Heuristics.datParser import DATParser
 from AMMMGlobals import AMMMException
 from Heuristics.BRKGA_fwk.solver_BRKGA import Solver_BRKGA
-from Heuristics.validateInputDataP2 import ValidateInputData
+from Heuristics.validateInputDataProject import ValidateInputData
 from Heuristics.ValidateConfig import ValidateConfig
 from Heuristics.solvers.solver_Greedy import Solver_Greedy
 from Heuristics.solvers.solver_GRASP import Solver_GRASP
@@ -59,7 +59,7 @@ class Main:
                 else:
                     raise AMMMException('Solver %s not supported.' % str(self.config.solver))
                 solution = solver.solve(solution=initialSolution)
-                print('Solution (CPUid: [TasksId]): %s' % str(solution.cpuIdToListTaskId))
+                #print('Solution (CPUid: [TasksId]): %s' % str(solution.cpuIdToListTaskId))
                 solution.saveToFile(self.config.solutionFile)
             else:
                 print('Instance is infeasible.')

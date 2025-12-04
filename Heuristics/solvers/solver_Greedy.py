@@ -27,9 +27,8 @@ class Solver_Greedy(_Solver):
 
     def _selectCandidate(self, candidateList):
         if self.config.solver == 'Greedy':
-            # sort candidate assignments by highestLoad in ascending order
-            sortedCandidateList = sorted(candidateList, key=lambda x: x.highestLoad)
-            # choose assignment with minimum highest load
+            sortedCandidateList = sorted(candidateList, key=lambda x: (-len(x.coveredPairs), x.cost()))
+            # choose the cheapest candidate that covers more paris
             return sortedCandidateList[0]
         return random.choice(candidateList)
 
@@ -37,29 +36,21 @@ class Solver_Greedy(_Solver):
         # get an empty solution for the problem
         solution = self.instance.createSolution()
 
-        # get tasks and sort them by their total required resources in descending order
-        tasks = self.instance.getTasks()
-        sortedTasks = sorted(tasks, key=lambda t: t.getTotalResources(), reverse=True)
+        crossings = self.instance.getCrossings()
+        cameras = self.instance.getCameras()
+        sortedCameras = sorted(cameras, key=lambda c: c.getPrice())
 
-
-        # for each task taken in sorted order
-        for task in sortedTasks:
-            taskId = task.getId()
-
-            # compute feasible assignments
-            candidateList = solution.findFeasibleAssignments(taskId)
-
-            # no candidate assignments => no feasible assignment found
-            if not candidateList:
-                solution.makeInfeasible()
-                break
-
-            # select assignment
-            candidate = self._selectCandidate(candidateList)
-
-            # assign the current task to the CPU that resulted in a minimum highest load
-            solution.assign(taskId, candidate.cpuId)
-
+        while solution.getUncoveredPairs() > 0:
+            for crossing in crossings:
+                for camera in sortedCameras:
+                    # compute feasible assignments
+                    print(solution.getUncoveredPairsSet())
+                    candidateList = solution.findFeasibleAssignments(camera, crossing)
+                    if not candidateList: continue
+                    # select assignment
+                    candidate = self._selectCandidate(candidateList)
+                    solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
+                    if solution.getUncoveredPairs() == 0: return solution
         return solution
 
     def solve(self, **kwargs):

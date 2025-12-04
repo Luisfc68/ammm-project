@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from Heuristics.problem.Task import Task
-from Heuristics.problem.CPU import CPU
+from Heuristics.problem.Camera import Camera
+from Heuristics.problem.Crossing import Crossing
 from Heuristics.problem.solution import Solution
 
 
@@ -26,48 +26,40 @@ class Instance(object):
     def __init__(self, config, inputData):
         self.config = config
         self.inputData = inputData
-        nTasks = inputData.nTasks
-        nCPUs = inputData.nCPUs
-        rt = inputData.rt
-        self.rc = inputData.rc
+        nCameras = inputData.nCameras
+        nCrossings = inputData.nCrossings
+        prices = inputData.prices
+        ranges = inputData.ranges
+        autonomies = inputData.autonomies
+        consumptions = inputData.consumptions
+        minRanges = inputData.minRanges
 
-        self.tasks = [None] * nTasks  # vector with tasks
-        for tId in range(0, nTasks):  # tId = 0..(nTasks-1)
-            self.tasks[tId] = Task(tId, rt[tId])
+        self.cameras = [None] * nCameras
+        for i in range(0, nCameras):
+            self.cameras[i] = Camera(i + 1, prices[i], ranges[i], autonomies[i], consumptions[i])
 
-        self.cpus = [None] * nCPUs  # vector with cpus
-        for cId in range(0, nCPUs):  # cId = 0..(nCPUs-1)
-            self.cpus[cId] = CPU(cId, self.rc[cId])
+        self.crossings = [None] * nCrossings
+        for i in range(0, nCrossings):
+            self.crossings[i] = Crossing(i + 1, minRanges[i])
 
-    def getNumTasks(self):
-        return len(self.tasks)
 
-    def getNumCPUs(self):
-        return len(self.cpus)
+    def getNumCameras(self):
+        return len(self.cameras)
 
-    def getTasks(self):
-        return self.tasks
+    def getNumCrossings(self):
+        return len(self.crossings)
 
-    def getCPUs(self):
-        return self.cpus
+    def getCameras(self):
+        return self.cameras
+
+    def getCrossings(self):
+        return self.crossings
 
     def createSolution(self):
-        solution = Solution(self.tasks, self.cpus, self.rc)
+        solution = Solution(self.cameras, self.crossings)
         solution.setVerbose(self.config.verbose)
         return solution
 
     def checkInstance(self):
-        totalCapacityCPUs = 0.0
-        maxCPUCapacity = 0.0
-        for cpu in self.cpus:
-            capacity = cpu.getTotalCapacity()
-            totalCapacityCPUs += capacity
-            maxCPUCapacity = max(maxCPUCapacity, capacity)
-
-        totalResourcesTasks = 0.0
-        for task in self.tasks:
-            resources = task.getTotalResources()
-            totalResourcesTasks += resources
-            if resources > maxCPUCapacity: return False
-
-        return totalCapacityCPUs >= totalResourcesTasks
+        # in the current specification, there's not condition that would make the problem unfeasible
+        return True
