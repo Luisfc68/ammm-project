@@ -19,14 +19,14 @@ class Solver_Greedy(_Solver):
 
         crossings = self.instance.getCrossings()
         cameras = self.instance.getCameras()
-        sortedCameras = sorted(cameras, key=lambda c: c.getPrice())
+        sortedCrossings = sorted(crossings, key=lambda cr: sum(cr.getRequiredRanges()))
 
         while solution.getUncoveredPairs() > 0:
-            for crossing in crossings:
+            for crossing in sortedCrossings:
                 candidateList = []
-                for camera in sortedCameras:
+                for camera in cameras:
                     # compute feasible assignments
-                    print(solution.getUncoveredPairsSet())
+                    # print(solution.getUncoveredPairsSet())
                     newCandidates = solution.findFeasibleAssignments(camera, crossing)
                     if not newCandidates: continue
                     candidateList.extend(newCandidates)
