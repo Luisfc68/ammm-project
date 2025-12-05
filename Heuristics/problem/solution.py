@@ -44,11 +44,13 @@ class Solution(_Solution):
     def updateTotalCost(self):
         assignments = self._assignments
         self._totalCost = 0
+        self.fitness = 0
         for assignment in assignments:
             camera = assignment[0]
             totalDays = sum(assignment[2])
             cost = camera.getPrice() + totalDays * camera.getPowerConsumption()
             self._totalCost += cost
+        self.fitness = self._totalCost
 
     def updateCoveredPairs(self):
         assignments = self._assignments
@@ -106,8 +108,8 @@ class Solution(_Solution):
         return True
 
     def __str__(self):
-        strSolution = 'cost = %d;\n' % self._totalCost
-        if self._totalCost == float('inf'): return strSolution
+        strSolution = 'cost = {};\n'.format(self.fitness)
+        if self.fitness == float('inf'): return strSolution
 
         # assignments: [(camera, crossing, schedule)]
         strSolution += 'assignments = [\n'
