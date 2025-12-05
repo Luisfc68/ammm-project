@@ -31,6 +31,9 @@ class Solver_Greedy(_Solver):
                     if not newCandidates: continue
                     candidateList.extend(newCandidates)
                     # select assignment
+                if not candidateList:
+                    solution.makeInfeasible()
+                    return solution
                 candidate = self._selectCandidate(candidateList)
                 solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
                 if solution.getUncoveredPairs() == 0: return solution
