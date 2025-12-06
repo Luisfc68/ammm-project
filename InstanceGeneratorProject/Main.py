@@ -20,12 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 from Heuristics.datParser import DATParser
 from AMMMGlobals import AMMMException
-from InstanceGeneratorP2.ValidateConfig import ValidateConfig
-from InstanceGeneratorP2.InstanceGenerator import InstanceGenerator
+from InstanceGeneratorProject.ValidateConfig import ValidateConfig
+from InstanceGeneratorProject.InstanceGenerator import InstanceGenerator
 
 def run():
     try:
-        configFile = "config\config.dat"
+        configFile = "config/config.dat"
         print("AMMM Instance Generator")
         print("-----------------------")
         print("Reading Config file %s..." % configFile)

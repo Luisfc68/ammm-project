@@ -1,0 +1,12 @@
+nCameras=2;
+nCrossings=4;
+prices=[20 49];
+ranges=[28 23];
+autonomies=[4 6];
+consumptions=[33 18];
+minRanges=[
+	[0 5 5 10]
+	[28 0 13 9]
+	[11 30 0 3]
+	[1 48 27 0]
+];
