@@ -73,6 +73,7 @@ class LocalSearch(_Solver):
             if neighbor is None: break
             neighborFitness = neighbor.getFitness()
             if incumbentFitness <= neighborFitness: break
+            else: print("[Local Search Jump #%d] %d => %d" % (iterations, incumbentFitness, neighborFitness))
             incumbent = neighbor
             incumbentFitness = neighborFitness
 
