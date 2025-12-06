@@ -55,16 +55,16 @@ class InstanceGenerator(object):
                     else:
                         rangeRequirements[i][j] = random.randint(minRangeRequirement, maxRangeRequirement)
 
-            fInstance.write('nCameras=%d;\n' % numCameras)
-            fInstance.write('nCrossings=%d;\n' % numCrossings)
+            fInstance.write('K=%d;\n' % numCameras)
+            fInstance.write('N=%d;\n' % numCrossings)
 
             # translate vector of ints into vector of strings and concatenate that strings separating them by a single space character
-            fInstance.write('prices=[%s];\n' % (' '.join(map(str, prices))))
-            fInstance.write('ranges=[%s];\n' % (' '.join(map(str, ranges))))
-            fInstance.write('autonomies=[%s];\n' % (' '.join(map(str, autonomies))))
-            fInstance.write('consumptions=[%s];\n' % (' '.join(map(str, powerConsumptions))))
+            fInstance.write('P=[%s];\n' % (' '.join(map(str, prices))))
+            fInstance.write('R=[%s];\n' % (' '.join(map(str, ranges))))
+            fInstance.write('A=[%s];\n' % (' '.join(map(str, autonomies))))
+            fInstance.write('C=[%s];\n' % (' '.join(map(str, powerConsumptions))))
 
-            fInstance.write('minRanges=[\n')
+            fInstance.write('M=[\n')
             for i in range(numCrossings):
                 fInstance.write('\t[%s]\n' % (' '.join(map(str, rangeRequirements[i]))))
             fInstance.write('];')
