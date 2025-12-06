@@ -46,6 +46,9 @@ class Solution(_Solution):
     def getUncoveredPairsSet(self):
         return self._pairs.difference(self._coveredPairs)
 
+    def getCoveredPairs(self):
+        return self._coveredPairs
+
     def updateTotalCost(self):
         assignments = self._assignments
         self._totalCost = 0

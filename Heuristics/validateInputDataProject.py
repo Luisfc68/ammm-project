@@ -9,22 +9,22 @@ class ValidateInputData(object):
     @staticmethod
     def validate(data):
         # Validate that all input parameters were found
-        for paramName in ['nCameras', 'nCrossings', 'prices', 'ranges', 'autonomies', 'consumptions', 'minRanges']:
+        for paramName in ['N', 'K', 'P', 'R', 'A', 'C', 'M']:
             if paramName not in data.__dict__:
                 raise AMMMException('Parameter/Set(%s) not contained in Input Data' % str(paramName))
 
 
-        nCameras = data.nCameras
+        nCameras = data.K
         if not isinstance(nCameras, int) or (nCameras <= 0):
             raise AMMMException('nCameras(%s) has to be a positive integer value.' % str(nCameras))
 
 
-        nCrossings = data.nCrossings
+        nCrossings = data.N
         if not isinstance(nCrossings, int) or (nCrossings <= 0):
             raise AMMMException('nCrossings(%s) has to be a positive integer value.' % str(nCrossings))
 
-        data.prices = list(data.prices)
-        prices = data.prices
+        data.P = list(data.P)
+        prices = data.P
         if len(prices) != nCameras:
             raise AMMMException('Size of prices(%d) does not match with value of nCameras(%d).' % (len(prices), nCameras))
 
@@ -32,8 +32,8 @@ class ValidateInputData(object):
             if not isinstance(value, int) or (value < 0):
                 raise AMMMException('Invalid parameter value(%s) in prices. Should be a int greater or equal than zero.' % str(value))
 
-        data.ranges = list(data.ranges)
-        ranges = data.ranges
+        data.R = list(data.R)
+        ranges = data.R
         if len(ranges) != nCameras:
             raise AMMMException(
                 'Size of ranges(%d) does not match with value of nCameras(%d).' % (len(ranges), nCameras))
@@ -43,8 +43,8 @@ class ValidateInputData(object):
                 raise AMMMException(
                     'Invalid parameter value(%s) in ranges. Should be a int in [1,49].' % str(value))
 
-        data.autonomies = list(data.autonomies)
-        autonomies = data.autonomies
+        data.A = list(data.A)
+        autonomies = data.A
         if len(autonomies) != nCameras:
             raise AMMMException(
                 'Size of autonomies(%d) does not match with value of nCameras(%d).' % (len(autonomies), nCameras))
@@ -54,8 +54,8 @@ class ValidateInputData(object):
                 raise AMMMException(
                     'Invalid parameter value(%s) in autonomies. Should be a int in [2, 6].' % str(value))
 
-        data.consumptions = list(data.consumptions)
-        consumptions = data.consumptions
+        data.C = list(data.C)
+        consumptions = data.C
         if len(consumptions) != nCameras:
             raise AMMMException(
                 'Size of consumptions(%d) does not match with value of nCameras(%d).' % (len(consumptions), nCameras))
@@ -65,8 +65,8 @@ class ValidateInputData(object):
                 raise AMMMException(
                     'Invalid parameter value(%s) in consumptions. Should be a int greater or equal than zero.' % str(value))
 
-        data.minRanges = list(data.minRanges)
-        minRanges = data.minRanges
+        data.M = list(data.M)
+        minRanges = data.M
         for i in range(len(minRanges)):
             minRanges[i] = list(minRanges[i])
 
