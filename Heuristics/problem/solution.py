@@ -1,6 +1,7 @@
 import copy
 from Heuristics.solution import _Solution
-from Heuristics.problem.utils import computeScheduleCombinations, computeCrossingDayPairs, computeSchedulesPerAutonomy
+from Heuristics.problem.utils import computeCrossingDayPairs
+from Heuristics.problem.constants import DAYS, SCHEDULES_PER_AUTONOMY
 
 class Assignment(object):
     def __init__(self, camera, crossing, schedule, totalCost, coveredPairs):
@@ -20,26 +21,33 @@ class Assignment(object):
 # checks and to dump the solution into a string or file.
 class Solution(_Solution):
     def __init__(self, cameraModels, crossings):
-        DAYS = 7
-        MIN_AUTONOMY = 2
-        MAX_AUTONOMY = 6
-        ALL_SCHEDULES = computeScheduleCombinations(DAYS)
-
         self._assignments = [] # array of tuples (camera, crossing, schedule) that are covered
         self._coveredPairs = set()
         self._totalCost = 0
         self._pairs = computeCrossingDayPairs(len(crossings), DAYS)
-        self._schedulesPerAutonomy = computeSchedulesPerAutonomy(ALL_SCHEDULES, DAYS, MIN_AUTONOMY, MAX_AUTONOMY)
+        self._schedulesPerAutonomy = SCHEDULES_PER_AUTONOMY
         self._cameraModels = cameraModels
         self._crossings = crossings
         self._crossingToModel = {}
         super().__init__()
 
+    def getCameras(self):
+        return self._cameraModels
+
     def getUncoveredPairs(self):
         return len(self._pairs) - len(self._coveredPairs)
 
+    def getUniverseSize(self):
+        return len(self._pairs)
+
+    def getAssignments(self):
+        return copy.deepcopy(self._assignments)
+
     def getUncoveredPairsSet(self):
         return self._pairs.difference(self._coveredPairs)
+
+    def getCoveredPairs(self):
+        return self._coveredPairs
 
     def updateTotalCost(self):
         assignments = self._assignments
@@ -98,6 +106,13 @@ class Solution(_Solution):
             self.unassign(camera, crossing, schedule)
 
         return feasibleAssignments
+
+    def createAssignmentSnapshot(self, camera, crossing, schedule):
+        feasible = self.assign(camera, crossing, schedule)
+        if not feasible: return None
+        assignment = Assignment(camera, crossing, schedule, self._totalCost, self._coveredPairs)
+        self.unassign(camera, crossing, schedule)
+        return assignment
 
     def isFeasibleToAssignCameraToCrossing(self, crossing):
         if crossing.getCrossingId() in self._crossingToModel: return False

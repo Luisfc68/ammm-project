@@ -21,5 +21,8 @@ class Camera(object):
     def getPowerConsumption(self):
         return self._powerConsumption
 
+    def getCostForSchedule(self, schedule):
+        return sum(schedule) * self._powerConsumption + self._price
+
     def __str__(self):
         return "camera model: %d (price: %d, range: %d, autonomy: %d, power consumption: %d)" % (self._model, self._price, self._range, self._autonomy, self._powerConsumption)

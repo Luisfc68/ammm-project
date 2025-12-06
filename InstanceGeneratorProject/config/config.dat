@@ -1,0 +1,19 @@
+# file name: ../AMMMLabHeuristics/data/instance_XX.dat
+instancesDirectory = output;
+fileNamePrefix = example;
+fileNameExtension = dat;
+numInstances = 10;
+
+numCameras=2;
+minPrice=1;
+maxPrice=50;
+minRange=1;
+maxRange=49;
+minAutonomy=2;
+maxAutonomy=6;
+minPowerConsumption=1;
+maxPowerConsumption=50;
+
+numCrossings=4;
+minRangeRequirement=1;
+maxRangeRequirement=50;
