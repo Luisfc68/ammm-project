@@ -4,7 +4,7 @@ fileNamePrefix = example;
 fileNameExtension = dat;
 numInstances = 10;
 
-numCameras=2;
+numCameras=50;
 minPrice=1;
 maxPrice=50;
 minRange=1;
@@ -14,6 +14,6 @@ maxAutonomy=6;
 minPowerConsumption=1;
 maxPowerConsumption=50;
 
-numCrossings=4;
+numCrossings=100;
 minRangeRequirement=1;
 maxRangeRequirement=50;

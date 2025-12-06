@@ -1,22 +1,3 @@
-'''
-AMMM Lab Heuristics
-GRASP solver
-Copyright 2018 Luis Velasco.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
 import random
 import time
 from Heuristics.solver import _Solver
@@ -28,54 +9,48 @@ class Solver_GRASP(_Solver):
 
     def _selectCandidate(self, candidateList, alpha):
 
-        # sort candidate assignments by highestLoad in ascending order
-        sortedCandidateList = sorted(candidateList, key=lambda x: x.highestLoad)
+        # sort candidate assignments by covered pairs and use cost if is a tie
+        sortedCandidateList = sorted(candidateList, key=lambda x: (-len(x.coveredPairs), x.cost()))
         
-        # compute boundary highest load as a function of the minimum and maximum highest loads and the alpha parameter
-        minHLoad = sortedCandidateList[0].highestLoad
-        maxHLoad = sortedCandidateList[-1].highestLoad
-        boundaryHLoad = minHLoad + (maxHLoad - minHLoad) * alpha
+        # our quality metric is number of covered pairs
+        minPairs = len(sortedCandidateList[0].coveredPairs)
+        maxPairs = len(sortedCandidateList[-1].coveredPairs)
+        boundaryCoveredPairs = minPairs + (maxPairs - minPairs) * alpha
         
         # find elements that fall into the RCL
         maxIndex = 0
         for candidate in sortedCandidateList:
-            if candidate.highestLoad <= boundaryHLoad:
+            if len(candidate.coveredPairs) <= boundaryCoveredPairs:
                 maxIndex += 1
 
         # create RCL and pick an element randomly
         rcl = sortedCandidateList[0:maxIndex]          # pick first maxIndex elements starting from element 0
         if not rcl: return None
         return random.choice(rcl)          # pick a candidate from rcl at random
-    
+
     def _greedyRandomizedConstruction(self, alpha):
         # get an empty solution for the problem
         solution = self.instance.createSolution()
-        
-        # get tasks and sort them by their total required resources in descending order
-        tasks = self.instance.getTasks()
-        sortedTasks = sorted(tasks, key=lambda t: t.getTotalResources(), reverse=True)
 
+        crossings = self.instance.getCrossings()
+        cameras = self.instance.getCameras()
+        sortedCrossings = sorted(crossings, key=lambda cr: sum(cr.getRequiredRanges()))
 
-        # for each task taken in sorted order
-        for task in sortedTasks:
-            taskId = task.getId()
-            
-            # compute feasible assignments
-            candidateList = solution.findFeasibleAssignments(taskId)
-
-            # no candidate assignments => no feasible assignment found
-            if not candidateList:
-                solution.makeInfeasible()
-                break
-            
-            # select an assignment
-            candidate = self._selectCandidate(candidateList, alpha)
-
-            # assign the current task to the CPU that resulted in a minimum highest load
-            solution.assign(taskId, candidate.cpuId)
-            
+        while solution.getUncoveredPairs() > 0:
+            for crossing in sortedCrossings:
+                candidateList = []
+                for camera in cameras:
+                    newCandidates = solution.findFeasibleAssignments(camera, crossing)
+                    if not newCandidates: continue
+                    candidateList.extend(newCandidates)
+                if not candidateList:
+                    solution.makeInfeasible()
+                    return solution
+                candidate = self._selectCandidate(candidateList, alpha)
+                solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
+                if solution.getUncoveredPairs() == 0: return solution
         return solution
-    
+
     def stopCriteria(self):
         self.elapsedEvalTime = time.time() - self.startTime
         return time.time() - self.startTime > self.config.maxExecTime
@@ -84,8 +59,8 @@ class Solver_GRASP(_Solver):
         self.startTimeMeasure()
         incumbent = self.instance.createSolution()
         incumbent.makeInfeasible()
-        bestHighestLoad = incumbent.getFitness()
-        self.writeLogLine(bestHighestLoad, 0)
+        bestTotalCost = incumbent.getFitness()
+        self.writeLogLine(bestTotalCost, 0)
 
         iteration = 0
         while not self.stopCriteria():
@@ -101,13 +76,13 @@ class Solver_GRASP(_Solver):
                 solution = localSearch.solve(solution=solution, startTime=self.startTime, endTime=endTime)
 
             if solution.isFeasible():
-                solutionHighestLoad = solution.getFitness()
-                if solutionHighestLoad < bestHighestLoad :
+                solutionTotalCost = solution.getFitness()
+                if solutionTotalCost < bestTotalCost:
                     incumbent = solution
-                    bestHighestLoad = solutionHighestLoad
-                    self.writeLogLine(bestHighestLoad, iteration)
+                    bestTotalCost = solutionTotalCost
+                    self.writeLogLine(bestTotalCost, iteration)
 
-        self.writeLogLine(bestHighestLoad, iteration)
+        self.writeLogLine(bestTotalCost, iteration)
         self.numSolutionsConstructed = iteration
         self.printPerformance()
         return incumbent
