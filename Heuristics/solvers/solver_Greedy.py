@@ -35,8 +35,7 @@ class Solver_Greedy(_Solver):
                     solution.makeInfeasible()
                     return solution
                 candidate = self._selectCandidate(candidateList)
-                if len(candidate.coveredPairs) > len(solution.getCoveredPairs()):
-                    solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
+                solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
                 if solution.getUncoveredPairs() == 0: return solution
         return solution
 

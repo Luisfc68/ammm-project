@@ -46,14 +46,15 @@ class InstanceGenerator(object):
                 powerConsumptions[c] = random.randint(minPowerConsumption, maxPowerConsumption)
 
 
-            rangeRequirements = [0] * numCrossings
+            rangeRequirements = [[0] * numCrossings for _ in range(numCrossings)]
             for i in range(numCrossings):
-                rangeRequirements[i] = [0] * numCrossings
-                for j in range(numCrossings):
+                for j in range(i, numCrossings):
                     if i == j:
                         rangeRequirements[i][j] = 0
                     else:
-                        rangeRequirements[i][j] = random.randint(minRangeRequirement, maxRangeRequirement)
+                        value = random.randint(minRangeRequirement, maxRangeRequirement)
+                        rangeRequirements[i][j] = value
+                        rangeRequirements[j][i] = value
 
             fInstance.write('K=%d;\n' % numCameras)
             fInstance.write('N=%d;\n' % numCrossings)

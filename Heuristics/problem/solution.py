@@ -101,9 +101,10 @@ class Solution(_Solution):
             feasible = self.assign(camera, crossing, schedule)
             if not feasible: continue
             assignment = Assignment(camera, crossing, schedule, self._totalCost, self._coveredPairs)
-            feasibleAssignments.append(assignment)
-
             self.unassign(camera, crossing, schedule)
+            # add only if it improves the solution
+            if len(assignment.coveredPairs) > len(self._coveredPairs):
+                feasibleAssignments.append(assignment)
 
         return feasibleAssignments
 
