@@ -1,0 +1,37 @@
+{
+  "map_settings": {
+    "density_factor": 250,
+    "visibility_cutoff": 50
+  },
+  "market_settings": {
+    "share_weights": [40, 40, 20],
+    "price_floor": 50,
+    "price_noise": [0.95, 1.05]
+  },
+  "profiles": {
+    "LowCost": {
+      "range": [15, 30],
+      "autonomy": [2, 3],
+      "consumption_factor": [1.8, 2.5],
+      "base_price": 40,
+      "mult_range": 4,
+      "mult_autonomy": 15
+    },
+    "Standard": {
+      "range": [25, 42],
+      "autonomy": [3, 5],
+      "consumption_factor": [1.0, 1.5],
+      "base_price": 120,
+      "mult_range": 8,
+      "mult_autonomy": 40
+    },
+    "Premium": {
+      "range": [38, 49],
+      "autonomy": [5, 6],
+      "consumption_factor": [0.6, 1.0],
+      "base_price": 350,
+      "mult_range": 15,
+      "mult_autonomy": 80
+    }
+  }
+}
