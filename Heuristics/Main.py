@@ -78,11 +78,8 @@ def runMultipleMode(args):
 
     for i in range(len(files)):
         instanceInput = os.path.join(config.inputDataDir, files[i])
-        print(instanceInput)
         solutionFileParsed = Path(solutionFile)
-        print(solutionFileParsed)
         instanceSolution = str(solutionFileParsed.with_stem(solutionFileParsed.stem+'_'+str(i)))
-        print(instanceSolution)
         inputData = DATParser.parse(instanceInput)
         ValidateInputData.validate(inputData)
 
