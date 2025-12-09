@@ -26,17 +26,16 @@ class Solver_Greedy(_Solver):
                 candidateList = []
                 for camera in cameras:
                     # compute feasible assignments
-                    # print(solution.getUncoveredPairsSet())
                     newCandidates = solution.findFeasibleAssignments(camera, crossing)
                     if not newCandidates: continue
                     candidateList.extend(newCandidates)
-                    # select assignment
-                if not candidateList:
-                    solution.makeInfeasible()
-                    return solution
+                if not candidateList: continue
                 candidate = self._selectCandidate(candidateList)
                 solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
                 if solution.getUncoveredPairs() == 0: return solution
+            if solution.getUncoveredPairs() > 0:
+                solution.makeInfeasible()
+                return solution
         return solution
 
     def solve(self, **kwargs):

@@ -43,12 +43,13 @@ class Solver_GRASP(_Solver):
                     newCandidates = solution.findFeasibleAssignments(camera, crossing)
                     if not newCandidates: continue
                     candidateList.extend(newCandidates)
-                if not candidateList:
-                    solution.makeInfeasible()
-                    return solution
+                if not candidateList: continue
                 candidate = self._selectCandidate(candidateList, alpha)
                 solution.assign(candidate.camera, candidate.crossing, candidate.schedule)
                 if solution.getUncoveredPairs() == 0: return solution
+            if solution.getUncoveredPairs() > 0:
+                solution.makeInfeasible()
+                return solution
         return solution
 
     def stopCriteria(self):
