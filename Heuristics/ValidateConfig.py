@@ -52,37 +52,6 @@ class ValidateConfig(object):
             alpha = data.alpha
             if not isinstance(alpha, (int, float)) or (alpha < 0) or (alpha > 1):
                 raise AMMMException('alpha(%s) has to be a real value in range [0, 1].' % str(alpha))
-        elif solver == 'BRKGA':
-            # Validate that mandatory input parameters for GRASP solver were found
-            for paramName in ['maxExecTime', 'eliteProp', 'mutantProp', 'inheritanceProb', 'IndividualsMultiplier']:
-                if not paramName in data.__dict__:
-                    raise AMMMException('Parameter/Set(%s) not contained in Configuration. Required by BRKGA solver.' % str(paramName))
-
-            # Validate maxExecTime
-            maxExecTime = data.maxExecTime
-            if not isinstance(maxExecTime, (int, float)) or (maxExecTime <= 0):
-                raise AMMMException('maxExecTime(%s) has to be a positive real value.' % str(maxExecTime))
-
-            # Validate eliteProp
-            eliteProp = data.eliteProp
-            if not isinstance(eliteProp, (int, float)) or (eliteProp < 0) or (eliteProp > 1):
-                raise AMMMException('eliteProp(%s) has to be a real value in range [0, 1].' % str(eliteProp))
-
-            # Validate mutantProp
-            mutantProp = data.mutantProp
-            if not isinstance(mutantProp, (int, float)) or (mutantProp < 0) or (mutantProp > 1):
-                raise AMMMException('mutantProp(%s) has to be a real value in range [0, 1].' % str(mutantProp))
-
-            # Validate inheritanceProb
-            inheritanceProb = data.inheritanceProb
-            if not isinstance(inheritanceProb, (int, float)) or (inheritanceProb < 0) or (inheritanceProb > 1):
-                raise AMMMException('inheritanceProb(%s) has to be a real value in range [0, 1].' % str(inheritanceProb))
-
-            # Validate IndividualsMultiplier
-            IndividualsMultiplier = data.IndividualsMultiplier
-            if not isinstance(IndividualsMultiplier, (int, float)) or (IndividualsMultiplier <= 0):
-                raise AMMMException('IndividualsMultiplier(%s) has to be a positive real value.' % str(IndividualsMultiplier))
-
         else:
             raise AMMMException('Unsupported solver specified(%s) in Configuration.' % str(solver))
 

@@ -6,12 +6,10 @@ import os
 
 from Heuristics.datParser import DATParser
 from AMMMGlobals import AMMMException
-from Heuristics.BRKGA_fwk.solver_BRKGA import Solver_BRKGA
 from Heuristics.validateInputDataProject import ValidateInputData
 from Heuristics.ValidateConfig import ValidateConfig
 from Heuristics.solvers.solver_Greedy import Solver_Greedy
 from Heuristics.solvers.solver_GRASP import Solver_GRASP
-from Heuristics.solvers.decoder_BRKGA import Decoder
 from Heuristics.problem.instance import Instance
 
 
@@ -30,14 +28,6 @@ class Main:
                     solver = Solver_Greedy(self.config, instance)
                 elif self.config.solver == 'GRASP':
                     solver = Solver_GRASP(self.config, instance)
-                elif self.config.solver == 'BRKGA':
-                    verbose = self.config.verbose
-                    self.config.verbose = False
-                    greedy = Solver_Greedy(self.config, instance)
-                    initialSolution = greedy.solve(solver='Greedy', localSearch=False)
-                    self.config.verbose = verbose
-                    decoder = Decoder(self.config, instance)
-                    solver = Solver_BRKGA(decoder, instance)
                 else:
                     raise AMMMException('Solver %s not supported.' % str(self.config.solver))
                 solution = solver.solve(solution=initialSolution)
