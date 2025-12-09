@@ -55,6 +55,7 @@ class Main:
 
 def runSingleMode(args):
     config = DATParser.parse(args.configFile)
+    config.isMultiple = args.multiple
     ValidateConfig.validate(config)
     inputData = DATParser.parse(config.inputDataFile)
     ValidateInputData.validate(inputData)
@@ -70,6 +71,7 @@ def runSingleMode(args):
 
 def runMultipleMode(args):
     config = DATParser.parse(args.configFile)
+    config.isMultiple = args.multiple
     ValidateConfig.validate(config)
     files = os.listdir(config.inputDataDir)
     solutionFile = config.solutionFile
@@ -82,9 +84,7 @@ def runMultipleMode(args):
         instanceSolution = str(solutionFileParsed.with_stem(solutionFileParsed.stem+'_'+str(i)))
         print(instanceSolution)
         inputData = DATParser.parse(instanceInput)
-        print('parsed')
         ValidateInputData.validate(inputData)
-        print('validated')
 
         if config.verbose:
             print('AMMM Lab Heuristics')
