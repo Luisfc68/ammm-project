@@ -6,7 +6,7 @@ maxExecTime          = 60;                      # Maximum execution time in seco
 verbose              = True;                    # Verbose mode?
 
 # --- Only required for the multiple mode ---
-inputDataDir         = data/ # Input dir with DAT files
+inputDataDir         = data/; # Input dir with DAT files
 
 # --- Greedy / Random specific parameters ---------------------------------------------------------------------
 # No specific parameters
