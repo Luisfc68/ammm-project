@@ -82,7 +82,7 @@ class InstanceGenerator(object):
 
             fInstance.write('M=[\n')
             for i in rangeRequirements:
-                fInstance.write("  " + str(i).replace(',', '') + ",\n")
+                fInstance.write("  " + str(i).replace(',', '') + "\n")
             fInstance.write('];')
 
             fInstance.close()
