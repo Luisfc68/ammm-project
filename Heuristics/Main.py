@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import sys
+import os
 
 from Heuristics.datParser import DATParser
 from AMMMGlobals import AMMMException
@@ -52,14 +53,9 @@ class Main:
             print('Exception:', e)
             return 1
 
-
-if __name__ == '__main__':
-    parser = ArgumentParser(description='AMMM Lab Heuristics')
-    parser.add_argument('-c', '--configFile', nargs='?', type=Path,
-                        default=Path(__file__).parent / 'config/config.dat', help='specifies the config file')
-    args = parser.parse_args()
-
+def runSingleMode(args):
     config = DATParser.parse(args.configFile)
+    config.isMultiple = args.multiple
     ValidateConfig.validate(config)
     inputData = DATParser.parse(config.inputDataFile)
     ValidateInputData.validate(inputData)
@@ -72,3 +68,43 @@ if __name__ == '__main__':
 
     main = Main(config)
     sys.exit(main.run(inputData))
+
+def runMultipleMode(args):
+    config = DATParser.parse(args.configFile)
+    config.isMultiple = args.multiple
+    ValidateConfig.validate(config)
+    files = os.listdir(config.inputDataDir)
+    solutionFile = config.solutionFile
+
+    for i in range(len(files)):
+        instanceInput = os.path.join(config.inputDataDir, files[i])
+        solutionFileParsed = Path(solutionFile)
+        instanceSolution = str(solutionFileParsed.with_stem(solutionFileParsed.stem+'_'+str(i)))
+        inputData = DATParser.parse(instanceInput)
+        ValidateInputData.validate(inputData)
+
+        if config.verbose:
+            print('AMMM Lab Heuristics')
+            print('-------------------')
+            print('Config file %s' % args.configFile)
+            print('Input Data file %s' % instanceInput)
+            print('Solution File %s' % instanceSolution)
+
+        config.solutionFile = instanceSolution
+        main = Main(config)
+        errorCode = main.run(inputData)
+        if errorCode != 0: sys.exit(errorCode)
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description='AMMM Lab Heuristics')
+    parser.add_argument('-c', '--configFile', nargs='?', type=Path,
+                        default=Path(__file__).parent / 'config/config.dat', help='specifies the config file')
+    parser.add_argument('-m', '--multiple', action="store_true")
+    args = parser.parse_args()
+
+    if args.multiple:
+        print("Running in multiple mode...")
+        runMultipleMode(args)
+    else:
+        print("Running in single mode...")
+        runSingleMode(args)
